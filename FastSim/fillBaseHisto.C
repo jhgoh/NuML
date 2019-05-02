@@ -1,4 +1,7 @@
 #include <THnSparse.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TAxis.h>
 #include <iostream>
 
 void fillBaseHisto()
