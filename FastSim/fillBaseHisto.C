@@ -45,6 +45,8 @@ void fillBaseHisto()
 	t1->SetBranchAddress("s2_vertz", &vars[Key::z2]);
 	const int nEvent1 = t1->GetEntries();
 	for ( int i=0; i<nEvent1; ++i ) {
+		t1->GetEntry(i);
+
 		vars[Key::r1] = std::hypot(x1, y1);
 		vars[Key::r2] = std::hypot(x2, y2);
 		vars[Key::phi1] = std::atan2(y1, x1);
@@ -68,6 +70,8 @@ void fillBaseHisto()
 	t2->SetBranchAddress("s2_verty", &y2);
 	t2->SetBranchAddress("s2_vertz", &vars[Key::z2]);
 	for ( int i=0; i<nEvent2; ++i ) {
+		t2->GetEntry(i);
+
 		vars[Key::r1] = std::hypot(x1, y1);
 		vars[Key::r2] = std::hypot(x2, y2);
 		vars[Key::phi1] = std::atan2(y1, x1);
