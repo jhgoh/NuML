@@ -24,19 +24,17 @@ def bookMethods(factory, loader, varSet, suffix):
                        "!H:!V:NeuronType=tanh:VarTransform=N:NCycles=100:HiddenLayers=N+5:TestRate=5:!UseRegulator")
 
     if has_keras:
-        if not os.path.exists('model_%s.h5' % varSetName):
-            model = keras.models.Sequential()
-            model.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(nvar,), kernel_regularizer=keras.regularizers.l2(1e-5)))
-            model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
-            model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
-            model.add(Dense(2, kernel_initializer='normal', activation='softmax'))
-            model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy',])
-            model.save('model.h5')
-            model.summary()
+        if os.path.exists('model_%s.h5' % varSetName): os.remove('model_%s.h5' % varSetName)
+        model = keras.models.Sequential()
+        model.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(nvar,), kernel_regularizer=keras.regularizers.l2(1e-5)))
+        model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
+        model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
+        model.add(Dense(2, kernel_initializer='normal', activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy',])
+        model.save('model_%s.h5' % varSetName)
+        model.summary()
         factory.BookMethod(loader, TMVA.Types.kPyKeras, "_".join(['PyKeras', suffix]),
-                           'H:!V:VarTransform=N:FilenameModel=model.h5:NumEpochs=100:BatchSize=128')
-
-if has_keras and os.path.exists('model.h5'): os.remove('model.h5')
+                           'H:!V:VarTransform=N:FilenameModel=model_%s.h5:NumEpochs=100:BatchSize=128' % varSetName)
 
 fin = TFile("event.root")
 treeS = fin.Get("treeS")
