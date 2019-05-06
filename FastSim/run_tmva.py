@@ -14,7 +14,8 @@ factory = TMVA.Factory("TMVAClassification", fout,
 
 loader = TMVA.DataLoader("dataset");
 #for var in ["En1", "En2", "dt", "dr", "x1", "y1", "z1", "x2", "y2", "z2"]:
-for var in ["dt", "dr", "x1", "y1", "z1", "x2", "y2", "z2"]:
+#for var in ["dt", "dr", "x1", "y1", "z1", "x2", "y2", "z2"]:
+for var in ["dt", "dr"]:
 #for var in ["x1", "y1", "z1", "x2", "y2", "z2"]:
     loader.AddVariable(var)
 
