@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 from ROOT import *
+import sys, os
+has_keras = True
+try:
+    import keras
+    import tensorflow as tf
+    from keras.layers.core import Dense
+    #from keras.optimizers import Adam
+except(e):
+    has_keras = False
 
-def bookMethods(loader, factory, suffix):
-    loader.AddSignalTree    (treeS, 1.0)
-    loader.AddBackgroundTree(treeB, 1.0)
-    loader.PrepareTrainingAndTestTree(TCut(""), TCut(""),
-                                      "nTrain_Signal=5000:nTrain_Background=5000:SplitMode=Random:NormMode=NumEvents:!V")
+def bookMethods(factory, loader, varSet, suffix):
+    varSetName, variables = varSet
+    nvar = len(variables)
 
     factory.BookMethod(loader,TMVA.Types.kBDT, "_".join(["BDT", suffix]),
                        "!V:NTrees=200:MinNodeSize=2.5%:MaxDepth=2:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20")
@@ -16,7 +23,20 @@ def bookMethods(loader, factory, suffix):
     factory.BookMethod(loader,TMVA.Types.kMLP, "_".join(["MLP", suffix]),
                        "!H:!V:NeuronType=tanh:VarTransform=N:NCycles=100:HiddenLayers=N+5:TestRate=5:!UseRegulator")
 
-    return factory
+    if has_keras:
+        if not os.path.exists('model_%s.h5' % varSetName):
+            model = keras.models.Sequential()
+            model.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(nvar,), kernel_regularizer=keras.regularizers.l2(1e-5)))
+            model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
+            model.add(Dense(64, kernel_initializer='normal', activation='relu', kernel_regularizer=keras.regularizers.l2(1e-5)))
+            model.add(Dense(2, kernel_initializer='normal', activation='softmax'))
+            model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy',])
+            model.save('model.h5')
+            model.summary()
+        factory.BookMethod(loader, TMVA.Types.kPyKeras, "_".join(['PyKeras', suffix]),
+                           'H:!V:VarTransform=N:FilenameModel=model.h5:NumEpochs=100:BatchSize=128')
+
+if has_keras and os.path.exists('model.h5'): os.remove('model.h5')
 
 fin = TFile("event.root")
 treeS = fin.Get("treeS")
@@ -25,6 +45,7 @@ treeB = fin.Get("treeB")
 fout = TFile.Open("tmva.root", "RECREATE")
 
 TMVA.Tools.Instance()
+TMVA.PyMethodBase.PyInitialize()
 factory = TMVA.Factory("TMVAClassification", fout,
                        "!V:ROC:!Correlations:!Silent:Color:!DrawProgressBar:AnalysisType=Classification" )
 
@@ -38,8 +59,13 @@ varSets = {
 loaders = []
 for name, variables in varSets.iteritems():
     loader = TMVA.DataLoader("dataset_%s" % name)
+    loader.AddSignalTree    (treeS, 1.0)
+    loader.AddBackgroundTree(treeB, 1.0)
+    loader.PrepareTrainingAndTestTree(TCut(""), TCut(""),
+                                      "nTrain_Signal=5000:nTrain_Background=5000:SplitMode=Random:NormMode=NumEvents:!V")
     for var in variables: loader.AddVariable(var)
-    bookMethods(loader, factory, name)
+
+    bookMethods(factory, loader, (name, variables), name)
     loaders.append(loader)
 
 factory.TrainAllMethods()
