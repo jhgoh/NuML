@@ -15,7 +15,7 @@ def bookMethods(factory, loader, varSet, suffix):
     nvar = len(variables)
 
     factory.BookMethod(loader,TMVA.Types.kBDT, "_".join(["BDT", suffix]),
-                       "!V:NTrees=200:MinNodeSize=2.5%:MaxDepth=2:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20")
+                       "!V:NTrees=1000:MinNodeSize=2.5%:MaxDepth=2:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20")
 
     factory.BookMethod(loader,TMVA.Types.kBDT, "_".join(["BDTG", suffix]),
                        "!H:!V:NTrees=1000:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.50:nCuts=20:MaxDepth=2");
@@ -54,6 +54,7 @@ varSets = {
     "dtvtx":["dt", "x1", "y1", "z1", "x2", "y2", "z2"],
     "all":["En1", "En2", "dt", "dr", "x1", "y1", "z1", "x2", "y2", "z2"],
 }
+allVars = ["En1", "En2", "dt", "dr", "x1", "y1", "z1", "x2", "y2", "z2"]
 loaders = []
 for name, variables in varSets.iteritems():
     loader = TMVA.DataLoader("dataset_%s" % name)
@@ -62,6 +63,8 @@ for name, variables in varSets.iteritems():
     loader.PrepareTrainingAndTestTree(TCut(""), TCut(""),
                                       "nTrain_Signal=5000:nTrain_Background=5000:SplitMode=Random:NormMode=NumEvents:!V")
     for var in variables: loader.AddVariable(var)
+    for var in allVars:
+        if var not in variables: loader.AddSpectator(var)
 
     bookMethods(factory, loader, (name, variables), name)
     loaders.append(loader)
