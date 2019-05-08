@@ -7,7 +7,7 @@ try:
     import tensorflow as tf
     from keras.layers.core import Dense
     #from keras.optimizers import Adam
-except(e):
+except:
     has_keras = False
 
 def bookMethods(factory, loader, varSet, suffix):

@@ -4,7 +4,7 @@ gStyle.SetOptStat(0)
 gStyle.SetOptTitle(0)
 
 colors = [kRed+1, kBlue+1, kGreen+2, kPink-6, kAzure+1]
-lines = [0, 1, 9, 7, 10]
+lines = [0, 1, 9, 7, 10, 2, 5]
 
 grps = []
 fin = TFile("tmva.root")
